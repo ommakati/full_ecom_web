@@ -12,6 +12,11 @@ backend/dist/
 .env.development.local
 .env.test.local
 .env.production.local
+.env.development
+.env.example
+.evn.local.env.production
+.evn.test
+.env.local.example
 
 # Logs
 npm-debug.log*
