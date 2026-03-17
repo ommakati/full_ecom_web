@@ -23,6 +23,7 @@
     "helmet": "^6.0.1",
     "node-fetch": "^2.7.0",
     "pg": "^8.9.0",
+    "sqlite3": "^6.0.1",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
