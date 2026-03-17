@@ -1,10 +1,9 @@
 import axios from 'axios';
 
-// Create axios instance with base configuration
 const api = axios.create({
-  baseURL: '/api', // Vite proxy will handle this
+  baseURL: import.meta.env.VITE_API_URL,
   timeout: 10000,
-  withCredentials: true, // Important for session-based auth
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
