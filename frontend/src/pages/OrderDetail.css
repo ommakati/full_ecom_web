@@ -1,0 +1,396 @@
+.order-detail {
+  min-height: 100vh;
+  background-color: #f8f9fa;
+  padding: 2rem 0;
+}
+
+.order-detail-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.order-detail-loading,
+.order-detail-error {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.order-detail-loading p {
+  margin-top: 1rem;
+  color: #6c757d;
+  font-size: 1.1rem;
+}
+
+.order-detail-error h2 {
+  color: #dc3545;
+  margin-bottom: 1rem;
+}
+
+.order-detail-error p {
+  color: #6c757d;
+  margin-bottom: 2rem;
+}
+
+.error-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.back-to-orders-btn,
+.retry-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.375rem;
+  font-size: 1rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.back-to-orders-btn {
+  background-color: #6c757d;
+  color: white;
+}
+
+.back-to-orders-btn:hover {
+  background-color: #545b62;
+  text-decoration: none;
+  color: white;
+}
+
+.retry-btn {
+  background-color: #007bff;
+  color: white;
+}
+
+.retry-btn:hover {
+  background-color: #0056b3;
+}
+
+.order-detail-header {
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.header-navigation {
+  margin-bottom: 1.5rem;
+}
+
+.back-link {
+  color: #007bff;
+  text-decoration: none;
+  font-size: 1rem;
+  transition: color 0.2s;
+}
+
+.back-link:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
+.order-title h2 {
+  font-size: 2rem;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+}
+
+.order-meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.order-date {
+  color: #6c757d;
+  font-size: 1rem;
+}
+
+.status-badge {
+  padding: 0.5rem 1rem;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.status-pending {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.status-confirmed {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status-shipped {
+  background-color: #cce5ff;
+  color: #004085;
+}
+
+.status-delivered {
+  background-color: #d1ecf1;
+  color: #0c5460;
+}
+
+.order-detail-content {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.order-items-section,
+.order-summary-section {
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+}
+
+.order-items-section h3,
+.order-summary-section h3 {
+  font-size: 1.5rem;
+  color: #2c3e50;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.order-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.order-item {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid #e9ecef;
+  border-radius: 0.5rem;
+  transition: box-shadow 0.2s;
+}
+
+.order-item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.item-image {
+  flex-shrink: 0;
+}
+
+.item-image img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 0.375rem;
+  border: 1px solid #e9ecef;
+}
+
+.item-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.item-details h4 {
+  font-size: 1.1rem;
+  color: #2c3e50;
+  margin: 0;
+}
+
+.item-description {
+  color: #6c757d;
+  font-size: 0.9rem;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.item-price-info {
+  display: flex;
+  gap: 1rem;
+  margin-top: auto;
+}
+
+.item-price,
+.item-quantity {
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+.item-price {
+  font-weight: 500;
+}
+
+.item-total {
+  flex-shrink: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  align-self: flex-start;
+}
+
+.summary-details {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+.summary-total {
+  border-top: 2px solid #e9ecef;
+  padding-top: 1rem;
+  margin-top: 1rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.payment-info {
+  border-top: 1px solid #e9ecef;
+  padding-top: 1.5rem;
+}
+
+.payment-info h4 {
+  color: #2c3e50;
+  margin-bottom: 1rem;
+}
+
+.payment-note {
+  color: #6c757d;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.order-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem 2rem;
+}
+
+.continue-shopping-btn {
+  background-color: #28a745;
+  color: white;
+  text-decoration: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.375rem;
+  font-size: 1rem;
+  transition: background-color 0.2s;
+}
+
+.continue-shopping-btn:hover {
+  background-color: #218838;
+  text-decoration: none;
+  color: white;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .order-detail {
+    padding: 1rem 0;
+  }
+
+  .order-detail-container {
+    padding: 0 0.5rem;
+  }
+
+  .order-detail-header {
+    padding: 1.5rem;
+  }
+
+  .order-title h2 {
+    font-size: 1.5rem;
+  }
+
+  .order-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .order-detail-content {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .order-items-section,
+  .order-summary-section {
+    padding: 1.5rem;
+  }
+
+  .order-item {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .item-image {
+    align-self: center;
+  }
+
+  .item-price-info {
+    justify-content: center;
+  }
+
+  .item-total {
+    align-self: center;
+    font-size: 1.2rem;
+  }
+
+  .order-actions {
+    flex-direction: column;
+    padding: 1.5rem;
+  }
+
+  .error-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .order-detail-header {
+    padding: 1rem;
+  }
+
+  .order-title h2 {
+    font-size: 1.25rem;
+  }
+
+  .order-items-section,
+  .order-summary-section {
+    padding: 1rem;
+  }
+
+  .order-items-section h3,
+  .order-summary-section h3 {
+    font-size: 1.25rem;
+  }
+
+  .item-image img {
+    width: 60px;
+    height: 60px;
+  }
+
+  .order-actions {
+    padding: 1rem;
+  }
+}

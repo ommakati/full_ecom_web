@@ -1,0 +1,14 @@
+.admin-layout {
+  min-height: 100vh;
+  background: #f8f9fa;
+}
+
+.admin-layout__content {
+  min-height: calc(100vh - 80px); /* Adjust based on nav height */
+  padding: 0;
+}
+
+/* Ensure admin content has proper spacing */
+.admin-layout__content > * {
+  min-height: calc(100vh - 80px);
+}
