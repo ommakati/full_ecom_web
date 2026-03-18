@@ -96,17 +96,21 @@ const createSampleProducts = async () => {
 // Main seed function
 const seedDatabase = async () => {
   try {
-    console.log('Starting database seeding...')
+    console.log('🌱 Starting database seeding...')
+    console.log(`📧 Admin email: ${config.ADMIN_EMAIL}`)
     
     await createAdminUser()
     await createSampleProducts()
     
-    console.log('✓ Database seeding completed successfully')
+    console.log('✅ Database seeding completed successfully')
   } catch (error) {
-    console.error('Database seeding failed:', error)
-    process.exit(1)
+    console.error('❌ Database seeding failed:', error)
+    throw error
   } finally {
-    await closePool()
+    // Don't close pool when called from server startup
+    if (import.meta.url === `file://${process.argv[1]}`) {
+      await closePool()
+    }
   }
 }
 

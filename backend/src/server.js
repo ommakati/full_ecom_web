@@ -3,16 +3,12 @@ import cors from "cors";
 import helmet from "helmet";
 import session from "express-session";
 import dotenv from "dotenv";
-import { exec } from "child_process";
-import { promisify } from "util";
 
 import { testConnection } from "./database/connection.js";
 import { rateLimit } from "./middleware/rateLimiting.js";
 import apiRoutes from "./routes/index.js";
 
 dotenv.config();
-
-const execPromise = promisify(exec);
 
 const app = express();
 const PORT = process.env.PORT || 10000; // Render uses dynamic port
@@ -72,15 +68,18 @@ const startServer = async () => {
     if (process.env.NODE_ENV === "production") {
       console.log("📦 Running database migrations...");
       try {
-        await execPromise("npm run migrate");
+        const { runMigrations } = await import("./database/migrate.js");
+        await runMigrations();
         console.log("✅ Migrations completed");
       } catch (error) {
         console.error("⚠️  Migration error:", error.message);
+        // Continue even if migration fails - tables might already exist
       }
       
       console.log("🌱 Running database seed...");
       try {
-        await execPromise("npm run seed");
+        const { seedDatabase } = await import("./database/seed.js");
+        await seedDatabase();
         console.log("✅ Seed completed");
       } catch (error) {
         console.error("⚠️  Seed error:", error.message);

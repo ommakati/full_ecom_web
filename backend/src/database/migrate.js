@@ -45,7 +45,7 @@ const applyMigration = async (filename, sql) => {
 // Main migration function
 const runMigrations = async () => {
   try {
-    console.log('Starting database migrations...')
+    console.log('📦 Starting database migrations...')
     
     // Create migrations table if it doesn't exist
     await createMigrationsTable()
@@ -76,16 +76,19 @@ const runMigrations = async () => {
     }
     
     if (appliedCount === 0) {
-      console.log('✓ All migrations are up to date')
+      console.log('✅ All migrations are up to date')
     } else {
-      console.log(`✓ Applied ${appliedCount} new migrations`)
+      console.log(`✅ Applied ${appliedCount} new migrations`)
     }
     
   } catch (error) {
-    console.error('Migration failed:', error)
-    process.exit(1)
+    console.error('❌ Migration failed:', error)
+    throw error
   } finally {
-    await closePool()
+    // Don't close pool when called from server startup
+    if (import.meta.url === `file://${process.argv[1]}`) {
+      await closePool()
+    }
   }
 }
 
