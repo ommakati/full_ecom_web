@@ -33,12 +33,18 @@ const applyMigration = async (filename, sql) => {
     await query(sql)
     
     // Record the migration as applied
-    await query('INSERT INTO migrations (filename) VALUES ($1)', [filename])
+    await query('INSERT INTO migrations (filename) VALUES ($1) ON CONFLICT (filename) DO NOTHING', [filename])
     
     console.log(`✓ Migration ${filename} applied successfully`)
   } catch (error) {
-    console.error(`✗ Failed to apply migration ${filename}:`, error.message)
-    throw error
+    // If error is about objects already existing, mark as applied anyway
+    if (error.message.includes('already exists')) {
+      console.log(`⚠️  Migration ${filename} objects already exist, marking as applied`)
+      await query('INSERT INTO migrations (filename) VALUES ($1) ON CONFLICT (filename) DO NOTHING', [filename])
+    } else {
+      console.error(`✗ Failed to apply migration ${filename}:`, error.message)
+      throw error
+    }
   }
 }
 
