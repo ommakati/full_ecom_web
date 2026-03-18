@@ -3,12 +3,16 @@ import cors from "cors";
 import helmet from "helmet";
 import session from "express-session";
 import dotenv from "dotenv";
+import { exec } from "child_process";
+import { promisify } from "util";
 
 import { testConnection } from "./database/connection.js";
 import { rateLimit } from "./middleware/rateLimiting.js";
 import apiRoutes from "./routes/index.js";
 
 dotenv.config();
+
+const execPromise = promisify(exec);
 
 const app = express();
 const PORT = process.env.PORT || 10000; // Render uses dynamic port
@@ -62,14 +66,37 @@ app.use((req, res) => {
 // Start server
 const startServer = async () => {
   try {
+    console.log("🚀 Starting server...");
+    
+    // Run migrations and seed in production
+    if (process.env.NODE_ENV === "production") {
+      console.log("📦 Running database migrations...");
+      try {
+        await execPromise("npm run migrate");
+        console.log("✅ Migrations completed");
+      } catch (error) {
+        console.error("⚠️  Migration error:", error.message);
+      }
+      
+      console.log("🌱 Running database seed...");
+      try {
+        await execPromise("npm run seed");
+        console.log("✅ Seed completed");
+      } catch (error) {
+        console.error("⚠️  Seed error:", error.message);
+      }
+    }
+    
     const dbConnected = await testConnection();
 
     app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-      console.log(`Database: ${dbConnected ? "Connected" : "Disconnected"}`);
+      console.log(`✅ Server running on port ${PORT}`);
+      console.log(`📦 Environment: ${process.env.NODE_ENV || "development"}`);
+      console.log(`💾 Database: ${dbConnected ? "Connected" : "Disconnected"}`);
     });
   } catch (error) {
-    console.error("Server failed:", error);
+    console.error("❌ Server failed:", error);
+    process.exit(1);
   }
 };
 
