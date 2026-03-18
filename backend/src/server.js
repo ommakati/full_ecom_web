@@ -19,7 +19,7 @@ app.use(helmet());
 // CORS configuration
 app.use(
   cors({
-    origin: [process.env.FRONTEND_URL || "https://full-ecom-web-frontend.vercel.app/", "http://localhost:3000"],
+    origin: [process.env.FRONTEND_URL || "https://full-ecom-web-frontend.vercel.app", "http://localhost:3000", "http://localhost:3001"],
     credentials: true,
   })
 );
