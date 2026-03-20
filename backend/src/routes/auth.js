@@ -86,13 +86,27 @@ router.post('/register', async (req, res) => {
     req.session.email = user.email
     req.session.isAdmin = user.is_admin
 
-    res.status(201).json({
-      user: {
-        id: user.id,
-        email: user.email,
-        isAdmin: user.is_admin,
-        createdAt: user.created_at
+    // Force session save before responding
+    req.session.save((err) => {
+      if (err) {
+        console.error('Session save error:', err)
+        return res.status(500).json({
+          error: {
+            code: 'SESSION_ERROR',
+            message: 'Failed to create session',
+            timestamp: new Date().toISOString()
+          }
+        })
       }
+
+      res.status(201).json({
+        user: {
+          id: user.id,
+          email: user.email,
+          isAdmin: user.is_admin,
+          createdAt: user.created_at
+        }
+      })
     })
   } catch (error) {
     console.error('Registration error:', error)
@@ -161,13 +175,27 @@ router.post('/login', async (req, res) => {
     req.session.email = user.email
     req.session.isAdmin = user.is_admin
 
-    res.json({
-      user: {
-        id: user.id,
-        email: user.email,
-        isAdmin: user.is_admin,
-        createdAt: user.created_at
+    // Force session save before responding
+    req.session.save((err) => {
+      if (err) {
+        console.error('Session save error:', err)
+        return res.status(500).json({
+          error: {
+            code: 'SESSION_ERROR',
+            message: 'Failed to create session',
+            timestamp: new Date().toISOString()
+          }
+        })
       }
+
+      res.json({
+        user: {
+          id: user.id,
+          email: user.email,
+          isAdmin: user.is_admin,
+          createdAt: user.created_at
+        }
+      })
     })
   } catch (error) {
     console.error('Login error:', error)
@@ -245,6 +273,27 @@ router.get('/profile', requireAuth, async (req, res) => {
       }
     })
   }
+})
+
+// Get current authenticated user (for checking auth status)
+router.get('/me', (req, res) => {
+  if (!req.session || !req.session.userId) {
+    return res.status(401).json({
+      error: {
+        code: 'UNAUTHORIZED',
+        message: 'Not authenticated',
+        timestamp: new Date().toISOString()
+      }
+    })
+  }
+
+  res.json({
+    user: {
+      id: req.session.userId,
+      email: req.session.email,
+      isAdmin: req.session.isAdmin || false
+    }
+  })
 })
 
 export default router

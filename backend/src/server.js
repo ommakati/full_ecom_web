@@ -37,7 +37,10 @@ app.use(
     cookie: {
       secure: process.env.NODE_ENV === "production",
       httpOnly: true,
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Important for cross-origin
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
     },
+    proxy: true, // Trust proxy for production (Render, Heroku, etc.)
   })
 );
 
