@@ -120,3 +120,32 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 }
 
 export { seedDatabase }
+
+// Ensure admin user exists (separate function for server startup)
+export const ensureAdminUser = async () => {
+  try {
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com'
+    const adminPassword = process.env.ADMIN_PASSWORD || 'admin123'
+    
+    // Check if admin user exists
+    const existingAdmin = await query('SELECT id FROM users WHERE email = $1', [adminEmail])
+    
+    if (existingAdmin.rows.length === 0) {
+      console.log('Creating admin user...')
+      const bcrypt = await import('bcrypt')
+      const passwordHash = await bcrypt.hash(adminPassword, 12)
+      
+      await query(
+        'INSERT INTO users (email, password_hash, is_admin) VALUES ($1, $2, $3)',
+        [adminEmail, passwordHash, true]
+      )
+      
+      console.log(`✅ Admin user created: ${adminEmail}`)
+    } else {
+      console.log(`✅ Admin user exists: ${adminEmail}`)
+    }
+  } catch (error) {
+    console.error('❌ Error ensuring admin user:', error)
+    throw error
+  }
+}

@@ -74,9 +74,41 @@ router.get('/:id', async (req, res) => {
 })
 
 // POST /api/products - Create new product (admin only)
-router.post('/', requireAdmin, validateProduct, async (req, res) => {
+router.post('/', async (req, res) => {
   try {
+    // Check if user is authenticated and is admin
+    if (!req.session || !req.session.userId) {
+      return res.status(401).json({
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'Authentication required',
+          timestamp: new Date().toISOString()
+        }
+      })
+    }
+
+    if (!req.session.isAdmin) {
+      return res.status(403).json({
+        error: {
+          code: 'FORBIDDEN',
+          message: 'Admin access required',
+          timestamp: new Date().toISOString()
+        }
+      })
+    }
+
     const { name, description, price, image_url } = req.body
+    
+    // Basic validation
+    if (!name || !price) {
+      return res.status(400).json({
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Name and price are required',
+          timestamp: new Date().toISOString()
+        }
+      })
+    }
     
     const result = await query(
       'INSERT INTO products (name, description, price, image_url) VALUES ($1, $2, $3, $4) RETURNING id, name, description, price, image_url, created_at, updated_at',
@@ -90,6 +122,7 @@ router.post('/', requireAdmin, validateProduct, async (req, res) => {
       error: {
         code: 'DATABASE_ERROR',
         message: 'Failed to create product',
+        details: error.message,
         timestamp: new Date().toISOString()
       }
     })
@@ -97,8 +130,29 @@ router.post('/', requireAdmin, validateProduct, async (req, res) => {
 })
 
 // PUT /api/products/:id - Update product (admin only)
-router.put('/:id', requireAdmin, validateProduct, async (req, res) => {
+router.put('/:id', async (req, res) => {
   try {
+    // Check if user is authenticated and is admin
+    if (!req.session || !req.session.userId) {
+      return res.status(401).json({
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'Authentication required',
+          timestamp: new Date().toISOString()
+        }
+      })
+    }
+
+    if (!req.session.isAdmin) {
+      return res.status(403).json({
+        error: {
+          code: 'FORBIDDEN',
+          message: 'Admin access required',
+          timestamp: new Date().toISOString()
+        }
+      })
+    }
+
     const { id } = req.params
     const { name, description, price, image_url } = req.body
     
@@ -136,6 +190,7 @@ router.put('/:id', requireAdmin, validateProduct, async (req, res) => {
       error: {
         code: 'DATABASE_ERROR',
         message: 'Failed to update product',
+        details: error.message,
         timestamp: new Date().toISOString()
       }
     })
@@ -143,8 +198,29 @@ router.put('/:id', requireAdmin, validateProduct, async (req, res) => {
 })
 
 // DELETE /api/products/:id - Delete product (admin only)
-router.delete('/:id', requireAdmin, async (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
+    // Check if user is authenticated and is admin
+    if (!req.session || !req.session.userId) {
+      return res.status(401).json({
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'Authentication required',
+          timestamp: new Date().toISOString()
+        }
+      })
+    }
+
+    if (!req.session.isAdmin) {
+      return res.status(403).json({
+        error: {
+          code: 'FORBIDDEN',
+          message: 'Admin access required',
+          timestamp: new Date().toISOString()
+        }
+      })
+    }
+
     const { id } = req.params
     
     // Validate UUID format
@@ -184,6 +260,7 @@ router.delete('/:id', requireAdmin, async (req, res) => {
       error: {
         code: 'DATABASE_ERROR',
         message: 'Failed to delete product',
+        details: error.message,
         timestamp: new Date().toISOString()
       }
     })
