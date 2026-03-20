@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon src/server.js",
-    "start": "node src/server.js",
+    "start": "node src/simple-server.js",
+    "start:original": "node src/server.js",
     "test": "cd .. && node --experimental-vm-modules node_modules/.bin/jest --runInBand --config backend/jest.config.js",
     "test:watch": "node --experimental-vm-modules $(npx which jest) --watch --runInBand",
     "migrate": "node src/database/migrate.js",
