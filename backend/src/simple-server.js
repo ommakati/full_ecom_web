@@ -6,8 +6,8 @@ import dotenv from "dotenv";
 import { testConnection } from "./database/connection.js";
 import simpleAuthRoutes from "./routes/simple-auth.js";
 import simpleProductRoutes from "./routes/simple-products.js";
-import cartRoutes from "./routes/cart.js";
-import orderRoutes from "./routes/orders.js";
+import simpleCartRoutes from "./routes/simple-cart.js";
+import simpleOrderRoutes from "./routes/simple-orders.js";
 
 dotenv.config();
 
@@ -64,8 +64,8 @@ app.get("/api/test", (req, res) => {
 // API Routes
 app.use("/api/auth", simpleAuthRoutes);
 app.use("/api/products", simpleProductRoutes);
-app.use("/api/cart", cartRoutes);
-app.use("/api/orders", orderRoutes);
+app.use("/api/cart", simpleCartRoutes);
+app.use("/api/orders", simpleOrderRoutes);
 
 // 404 handler
 app.use((req, res) => {
