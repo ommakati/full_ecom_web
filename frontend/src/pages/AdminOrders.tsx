@@ -1,27 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useToast } from '../contexts/ToastContext';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { orderService, Order, OrderItem } from '../services/orderService';
 import './AdminOrders.css';
-
-interface OrderItem {
-  id: string;
-  product_id: string;
-  product_name: string;
-  product_image_url?: string;
-  quantity: number;
-  price: number;
-  item_total: number;
-}
-
-interface Order {
-  id: string;
-  user_id: string;
-  user_email: string;
-  total_amount: number;
-  status: string;
-  created_at: string;
-  items: OrderItem[];
-}
 
 const AdminOrders: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -52,17 +33,8 @@ const AdminOrders: React.FC = () => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-      const response = await fetch(`${API_URL}/orders/admin/all`, {
-        credentials: 'include'
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch orders');
-      }
-
-      const data = await response.json();
-      setOrders(data.orders || []);
+      const response = await orderService.getAllOrders();
+      setOrders(response.orders || []);
     } catch (error) {
       console.error('Error fetching orders:', error);
       showError('Failed to load orders');
@@ -93,19 +65,7 @@ const AdminOrders: React.FC = () => {
 
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
     try {
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-      const response = await fetch(`${API_URL}/orders/admin/${orderId}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify({ status: newStatus })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update order status');
-      }
+      await orderService.updateOrderStatus(orderId, newStatus);
 
       // Update local state
       setOrders(orders.map(order =>

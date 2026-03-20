@@ -1,10 +1,10 @@
-import api from './api';
+import api, { TokenStorage } from './api';
 
 export interface User {
   id: string;
   email: string;
   isAdmin: boolean;
-  createdAt: string;
+  createdAt?: string;
 }
 
 export interface LoginCredentials {
@@ -19,6 +19,7 @@ export interface RegisterData {
 
 export interface AuthResponse {
   user: User;
+  token?: string;
 }
 
 export const authService = {
@@ -36,12 +37,24 @@ export const authService = {
 
   // Logout user
   logout: async (): Promise<void> => {
-    await api.post('/auth/logout');
+    try {
+      await api.post('/auth/logout');
+    } catch (error) {
+      console.warn('Logout request failed:', error);
+    } finally {
+      // Always remove token on logout
+      TokenStorage.removeToken();
+    }
   },
 
   // Get current user profile
   getProfile: async (): Promise<AuthResponse> => {
-    const response = await api.get('/auth/profile');
+    const response = await api.get('/auth/me');
     return response.data;
+  },
+
+  // Check if user is authenticated
+  isAuthenticated: (): boolean => {
+    return !!TokenStorage.getToken();
   },
 };

@@ -15,6 +15,7 @@ export interface OrderItem {
 export interface Order {
   id: string;
   user_id: string;
+  user_email: string;
   items: OrderItem[];
   total_amount: number;
   status: string;
@@ -49,5 +50,10 @@ export const orderService = {
   getAllOrders: async (): Promise<OrdersResponse> => {
     const response = await api.get('/orders/admin/all');
     return response.data;
+  },
+
+  // Update order status (admin only)
+  updateOrderStatus: async (orderId: string, status: string): Promise<void> => {
+    await api.patch(`/orders/admin/${orderId}/status`, { status });
   },
 };
