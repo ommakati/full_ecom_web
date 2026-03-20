@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        .success { color: green; }
+        .error { color: red; }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+        input {
+            padding: 8px;
+            margin: 5px;
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Backend Test Page</h1>
+    
+    <div class="section">
+        <h2>1. Test Backend Health</h2>
+        <button onclick="testHealth()">Test Health</button>
+        <div id="health-result"></div>
+    </div>
+
+    <div class="section">
+        <h2>2. Login</h2>
+        <input type="email" id="email" value="admin@example.com" placeholder="Email">
+        <input type="password" id="password" value="admin123" placeholder="Password">
+        <button onclick="testLogin()">Login</button>
+        <div id="login-result"></div>
+    </div>
+
+    <div class="section">
+        <h2>3. Test Authenticated Request</h2>
+        <button onclick="testProducts()">Get Products (Admin)</button>
+        <button onclick="testOrders()">Get Orders (Admin)</button>
+        <div id="auth-result"></div>
+    </div>
+
+    <div class="section">
+        <h2>Token Storage</h2>
+        <div id="token-display"></div>
+        <button onclick="clearToken()">Clear Token</button>
+    </div>
+
+    <script>
+        const API_URL = 'https://full-ecom-web-156s.onrender.com/api';
+        let token = localStorage.getItem('test_token');
+
+        function updateTokenDisplay() {
+            const display = document.getElementById('token-display');
+            if (token) {
+                display.innerHTML = `<pre>Token: ${token}</pre>`;
+            } else {
+                display.innerHTML = '<p>No token stored</p>';
+            }
+        }
+
+        function clearToken() {
+            token = null;
+            localStorage.removeItem('test_token');
+            updateTokenDisplay();
+            document.getElementById('auth-result').innerHTML = '<p class="success">Token cleared</p>';
+        }
+
+        async function testHealth() {
+            const result = document.getElementById('health-result');
+            result.innerHTML = '<p>Testing...</p>';
+            
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                const data = await response.json();
+                result.innerHTML = `<p class="success">✅ Backend is running</p><pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                result.innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+            }
+        }
+
+        async function testLogin() {
+            const result = document.getElementById('login-result');
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            result.innerHTML = '<p>Logging in...</p>';
+            
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || `HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                token = data.token;
+                localStorage.setItem('test_token', token);
+                updateTokenDisplay();
+                
+                result.innerHTML = `<p class="success">✅ Login successful!</p><pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                result.innerHTML = `<p class="error">❌ Login failed: ${error.message}</p>`;
+            }
+        }
+
+        async function testProducts() {
+            const result = document.getElementById('auth-result');
+            
+            if (!token) {
+                result.innerHTML = '<p class="error">❌ Please login first</p>';
+                return;
+            }
+            
+            result.innerHTML = '<p>Fetching products...</p>';
+            
+            try {
+                const response = await fetch(`${API_URL}/products`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || `HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                result.innerHTML = `<p class="success">✅ Products fetched!</p><pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                result.innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+            }
+        }
+
+        async function testOrders() {
+            const result = document.getElementById('auth-result');
+            
+            if (!token) {
+                result.innerHTML = '<p class="error">❌ Please login first</p>';
+                return;
+            }
+            
+            result.innerHTML = '<p>Fetching orders...</p>';
+            
+            try {
+                const response = await fetch(`${API_URL}/orders/admin/all`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || `HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                result.innerHTML = `<p class="success">✅ Orders fetched!</p><pre>${JSON.stringify(data, null, 2)}</pre>`;
+            } catch (error) {
+                result.innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+            }
+        }
+
+        // Initialize
+        updateTokenDisplay();
+    </script>
+</body>
+</html>
