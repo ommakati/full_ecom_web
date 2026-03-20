@@ -28,9 +28,14 @@ const api = axios.create({
 // Request interceptor for adding auth headers
 api.interceptors.request.use(
   (config) => {
-    const token = TokenStorage.getToken();
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // Don't send token for login/register requests
+    const isAuthEndpoint = config.url?.includes('/auth/login') || config.url?.includes('/auth/register');
+    
+    if (!isAuthEndpoint) {
+      const token = TokenStorage.getToken();
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },
