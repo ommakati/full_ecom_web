@@ -52,7 +52,8 @@ const AdminOrders: React.FC = () => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/orders/admin/all', {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const response = await fetch(`${API_URL}/orders/admin/all`, {
         credentials: 'include'
       });
 
@@ -92,7 +93,8 @@ const AdminOrders: React.FC = () => {
 
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/orders/admin/${orderId}/status`, {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const response = await fetch(`${API_URL}/orders/admin/${orderId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json'
