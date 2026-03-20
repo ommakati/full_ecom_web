@@ -27,9 +27,6 @@ const AppWithToasts: React.FC = () => {
 
   return (
     <>
-      <a href="#main-content" className="skip-link">
-        Skip to main content
-      </a>
       <AppProvider>
         <Router>
           <ErrorBoundary>
@@ -49,7 +46,8 @@ const AppWithToasts: React.FC = () => {
 
               {/* Admin routes */}
               <Route path="/admin" element={<AuthGuard requireAdmin={true}><AdminLayout /></AuthGuard>}>
-                <Route index element={<AdminDashboard />} />
+                <Route index element={<AdminProducts />} />
+                <Route path="dashboard" element={<AdminDashboard />} />
                 <Route path="products" element={<AdminProducts />} />
                 <Route path="orders" element={<AdminOrders />} />
               </Route>

@@ -68,11 +68,14 @@ const ProductList: React.FC = () => {
   if (loading && !isRetrying) {
     return (
       <div className="product-list">
-        <h2>Our Products</h2>
-        <div className="products-grid">
-          {Array.from({ length: 6 }, (_, index) => (
-            <ProductCardSkeleton key={index} />
-          ))}
+        <div className="product-list-container">
+          <h2>Our Products</h2>
+          <p className="product-list-subtitle">Discover amazing products at great prices</p>
+          <div className="products-grid">
+            {Array.from({ length: 6 }, (_, index) => (
+              <ProductCardSkeleton key={index} />
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -84,32 +87,35 @@ const ProductList: React.FC = () => {
     
     return (
       <div className="product-list">
-        <h2>Products</h2>
-        <ErrorDisplay
-          title={showAdvancedOptions ? "Still having trouble?" : "Unable to load products"}
-          message={error}
-          onRetry={handleRetry}
-          retryText={isRetrying ? "Retrying..." : "Try Again"}
-          showRetry={!isRetrying}
-        />
-        {showAdvancedOptions && (
-          <div className="advanced-error-options">
-            <p className="error-help-text">
-              If the problem persists, try refreshing the entire page or check back later.
-            </p>
-            <div className="error-actions">
-              <button onClick={handleRefresh} className="refresh-button">
-                Refresh Page
-              </button>
-              <button 
-                onClick={() => window.location.href = '/'}
-                className="home-button"
-              >
-                Go to Home
-              </button>
+        <div className="product-list-container">
+          <h2>Products</h2>
+          <p className="product-list-subtitle">Discover amazing products at great prices</p>
+          <ErrorDisplay
+            title={showAdvancedOptions ? "Still having trouble?" : "Unable to load products"}
+            message={error}
+            onRetry={handleRetry}
+            retryText={isRetrying ? "Retrying..." : "Try Again"}
+            showRetry={!isRetrying}
+          />
+          {showAdvancedOptions && (
+            <div className="advanced-error-options">
+              <p className="error-help-text">
+                If the problem persists, try refreshing the entire page or check back later.
+              </p>
+              <div className="error-actions">
+                <button onClick={handleRefresh} className="refresh-button">
+                  Refresh Page
+                </button>
+                <button 
+                  onClick={() => window.location.href = '/'}
+                  className="home-button"
+                >
+                  Go to Home
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     );
   }
@@ -118,14 +124,17 @@ const ProductList: React.FC = () => {
   if (products.length === 0) {
     return (
       <div className="product-list">
-        <h2>Products</h2>
-        <EmptyState
-          title="No products available"
-          message="We're currently updating our inventory. Check back soon for exciting new products!"
-          actionText="Refresh"
-          onAction={handleRefresh}
-          icon={<span>📦</span>}
-        />
+        <div className="product-list-container">
+          <h2>Products</h2>
+          <p className="product-list-subtitle">Discover amazing products at great prices</p>
+          <EmptyState
+            title="No products available"
+            message="We're currently updating our inventory. Check back soon for exciting new products!"
+            actionText="Refresh"
+            onAction={handleRefresh}
+            icon={<span>📦</span>}
+          />
+        </div>
       </div>
     );
   }
@@ -134,18 +143,21 @@ const ProductList: React.FC = () => {
   return (
     <ErrorBoundary>
       <div className="product-list">
-        <div className="product-list-header">
-          <h2>Our Products</h2>
-          {isRetrying && (
-            <div className="retry-indicator">
-              <LoadingSpinner size="small" message="Refreshing..." />
-            </div>
-          )}
-        </div>
-        <div className="products-grid">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
+        <div className="product-list-container">
+          <div className="product-list-header">
+            <h2>Our Products</h2>
+            <p className="product-list-subtitle">Discover amazing products at great prices</p>
+            {isRetrying && (
+              <div className="retry-indicator">
+                <LoadingSpinner size="small" message="Refreshing..." />
+              </div>
+            )}
+          </div>
+          <div className="products-grid">
+            {products.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
         </div>
       </div>
     </ErrorBoundary>

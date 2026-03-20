@@ -1,5 +1,5 @@
 import express from 'express'
-import { query } from '../database/connection.js'
+import { query, getClient } from '../database/connection.js'
 import { requireAuth, requireAdmin } from '../middleware/auth.js'
 
 const router = express.Router()
@@ -71,11 +71,13 @@ router.post('/', requireAuth, async (req, res) => {
     }
 
     // Begin transaction
-    await query('BEGIN')
-
+    const client = await getClient()
+    
     try {
+      await client.query('BEGIN')
+      
       // Create order
-      const orderResult = await query(`
+      const orderResult = await client.query(`
         INSERT INTO orders (user_id, total_amount, status)
         VALUES ($1, $2, 'pending')
         RETURNING id, user_id, total_amount, status, created_at
@@ -83,23 +85,23 @@ router.post('/', requireAuth, async (req, res) => {
 
       const order = orderResult.rows[0]
 
-      // Create order items
-      const orderItemsPromises = cartItems.map(item => {
-        return query(`
+      // Create order items one by one to ensure they use the same transaction
+      const orderItems = []
+      for (const item of cartItems) {
+        const result = await client.query(`
           INSERT INTO order_items (order_id, product_id, quantity, price)
           VALUES ($1, $2, $3, $4)
           RETURNING id, product_id, quantity, price
         `, [order.id, item.product_id, item.quantity, item.product_price])
-      })
-
-      const orderItemsResults = await Promise.all(orderItemsPromises)
-      const orderItems = orderItemsResults.map(result => result.rows[0])
+        orderItems.push(result.rows[0])
+      }
 
       // Clear cart after successful order creation
-      await query('DELETE FROM cart_items WHERE session_id = $1', [sessionId])
+      await client.query('DELETE FROM cart_items WHERE session_id = $1', [sessionId])
 
       // Commit transaction
-      await query('COMMIT')
+      await client.query('COMMIT')
+      client.release()
 
       // Format response with order details
       const orderItemsWithDetails = orderItems.map((item, index) => ({
@@ -121,7 +123,8 @@ router.post('/', requireAuth, async (req, res) => {
       })
     } catch (error) {
       // Rollback transaction on error
-      await query('ROLLBACK')
+      await client.query('ROLLBACK')
+      client.release()
       throw error
     }
   } catch (error) {
@@ -379,6 +382,67 @@ router.get('/admin/all', requireAdmin, async (req, res) => {
       error: {
         code: 'DATABASE_ERROR',
         message: 'Failed to retrieve orders',
+        timestamp: new Date().toISOString()
+      }
+    })
+  }
+})
+
+// PATCH /api/orders/admin/:id/status - Update order status (admin only)
+router.patch('/admin/:id/status', requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params
+    const { status } = req.body
+
+    if (!isValidUUID(id)) {
+      return res.status(400).json({
+        error: {
+          code: 'INVALID_ID',
+          message: 'Invalid order ID format',
+          timestamp: new Date().toISOString()
+        }
+      })
+    }
+
+    // Validate status
+    const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled']
+    if (!status || !validStatuses.includes(status)) {
+      return res.status(400).json({
+        error: {
+          code: 'INVALID_STATUS',
+          message: 'Invalid order status. Must be one of: ' + validStatuses.join(', '),
+          timestamp: new Date().toISOString()
+        }
+      })
+    }
+
+    // Update order status
+    const result = await query(
+      'UPDATE orders SET status = $1 WHERE id = $2 RETURNING id, status',
+      [status, id]
+    )
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error: {
+          code: 'ORDER_NOT_FOUND',
+          message: 'Order not found',
+          timestamp: new Date().toISOString()
+        }
+      })
+    }
+
+    res.json({
+      id: result.rows[0].id,
+      status: result.rows[0].status,
+      message: 'Order status updated successfully'
+    })
+  } catch (error) {
+    console.error('Error updating order status:', error)
+    res.status(500).json({
+      error: {
+        code: 'DATABASE_ERROR',
+        message: 'Failed to update order status',
         timestamp: new Date().toISOString()
       }
     })

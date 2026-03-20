@@ -95,7 +95,7 @@ const Header: React.FC = () => {
                   aria-label="Admin dashboard"
                 >
                   <span className="admin-icon" aria-hidden="true">⚙️</span>
-                  <span>Admin</span>
+                  <span>Dashboard</span>
                 </Link>
               )}
               <span className="user-email" aria-label={`Logged in as ${state.user?.email}`}>

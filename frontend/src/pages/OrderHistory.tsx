@@ -13,27 +13,27 @@ const OrderHistory: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchOrders = async () => {
-      if (!state.isAuthenticated) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await orderService.getOrders();
-        setOrders(response.orders || []);
-      } catch (error) {
-        console.error('Error fetching orders:', error);
-        setError('Failed to load order history. Please try again.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchOrders();
   }, [state.isAuthenticated]);
+
+  const fetchOrders = async () => {
+    if (!state.isAuthenticated) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await orderService.getOrders();
+      setOrders(response.orders || []);
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      setError('Failed to load order history. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -124,6 +124,13 @@ const OrderHistory: React.FC = () => {
         <div className="order-history-header">
           <h2>Order History</h2>
           <p>View all your past orders and their details</p>
+          <button 
+            onClick={fetchOrders} 
+            className="refresh-btn"
+            disabled={loading}
+          >
+            {loading ? 'Refreshing...' : '🔄 Refresh'}
+          </button>
         </div>
 
         <div className="orders-list">

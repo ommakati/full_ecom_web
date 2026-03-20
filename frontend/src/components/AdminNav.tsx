@@ -6,7 +6,11 @@ const AdminNav: React.FC = () => {
   const location = useLocation();
 
   const isActive = (path: string) => {
-    return location.pathname === path || location.pathname.startsWith(path + '/');
+    // Special handling for products - active when on /admin or /admin/products
+    if (path === '/admin/products') {
+      return location.pathname === '/admin' || location.pathname === '/admin/products';
+    }
+    return location.pathname === path;
   };
 
   return (
@@ -21,8 +25,8 @@ const AdminNav: React.FC = () => {
       <ul className="admin-nav__menu">
         <li className="admin-nav__item">
           <Link 
-            to="/admin" 
-            className={`admin-nav__link ${isActive('/admin') && location.pathname === '/admin' ? 'active' : ''}`}
+            to="/admin/dashboard" 
+            className={`admin-nav__link ${isActive('/admin/dashboard') ? 'active' : ''}`}
           >
             <span className="admin-nav__link-icon">📊</span>
             Dashboard

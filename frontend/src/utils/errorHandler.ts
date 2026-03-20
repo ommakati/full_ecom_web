@@ -48,9 +48,20 @@ export const parseApiError = (error: any): string => {
   const status = error.response?.status;
   const data = error.response?.data;
 
+  // Extract error message from various formats
+  const getErrorMessage = (data: any): string | undefined => {
+    if (typeof data === 'string') return data;
+    if (data?.error?.message) return data.error.message;
+    if (data?.error && typeof data.error === 'string') return data.error;
+    if (data?.message) return data.message;
+    return undefined;
+  };
+
+  const errorMessage = getErrorMessage(data);
+
   switch (status) {
     case 400:
-      return data?.message || data?.error || 'Invalid request. Please check your input and try again.';
+      return errorMessage || 'Invalid request. Please check your input and try again.';
     case 401:
       return 'You are not authorized to perform this action. Please log in and try again.';
     case 403:
@@ -58,9 +69,9 @@ export const parseApiError = (error: any): string => {
     case 404:
       return 'The requested resource was not found.';
     case 409:
-      return data?.message || 'A conflict occurred. The resource may already exist.';
+      return errorMessage || 'A conflict occurred. The resource may already exist.';
     case 422:
-      return data?.message || 'Invalid data provided. Please check your input.';
+      return errorMessage || 'Invalid data provided. Please check your input.';
     case 429:
       return 'Too many requests. Please wait a moment and try again.';
     case 500:
@@ -70,7 +81,7 @@ export const parseApiError = (error: any): string => {
     case 504:
       return 'Service temporarily unavailable. Please try again later.';
     default:
-      return data?.message || data?.error || 'An unexpected error occurred. Please try again.';
+      return errorMessage || 'An unexpected error occurred. Please try again.';
   }
 };
 

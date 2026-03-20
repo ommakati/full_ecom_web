@@ -24,6 +24,28 @@
 .order-history-header p {
   color: #6c757d;
   font-size: 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.refresh-btn {
+  padding: 0.5rem 1rem;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+  margin-top: 0.5rem;
+}
+
+.refresh-btn:hover:not(:disabled) {
+  background: #0056b3;
+}
+
+.refresh-btn:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
 }
 
 .order-history-loading,

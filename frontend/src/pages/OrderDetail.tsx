@@ -24,22 +24,24 @@ const OrderDetail: React.FC = () => {
       return;
     }
 
-    const fetchOrder = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const orderData = await orderService.getOrderById(orderId);
-        setOrder(orderData);
-      } catch (error) {
-        console.error('Error fetching order:', error);
-        setError('Failed to load order details. Please try again.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchOrder();
   }, [orderId, state.isAuthenticated, navigate]);
+
+  const fetchOrder = async () => {
+    if (!orderId) return;
+    
+    try {
+      setLoading(true);
+      setError(null);
+      const orderData = await orderService.getOrderById(orderId);
+      setOrder(orderData);
+    } catch (error) {
+      console.error('Error fetching order:', error);
+      setError('Failed to load order details. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -121,6 +123,14 @@ const OrderDetail: React.FC = () => {
               <span className={`status-badge status-${order.status}`}>
                 {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
               </span>
+              <button 
+                onClick={fetchOrder} 
+                className="refresh-btn"
+                disabled={loading}
+                title="Refresh order status"
+              >
+                {loading ? 'Refreshing...' : '🔄 Refresh'}
+              </button>
             </div>
           </div>
         </div>

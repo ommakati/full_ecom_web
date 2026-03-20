@@ -64,26 +64,25 @@ const startServer = async () => {
   try {
     console.log("🚀 Starting server...");
     
-    // Run migrations and seed in production
-    if (process.env.NODE_ENV === "production") {
-      console.log("📦 Running database migrations...");
-      try {
-        const { runMigrations } = await import("./database/migrate.js");
-        await runMigrations();
-        console.log("✅ Migrations completed");
-      } catch (error) {
-        console.error("⚠️  Migration error:", error.message);
-        // Continue even if migration fails - tables might already exist
-      }
-      
-      console.log("🌱 Running database seed...");
-      try {
-        const { seedDatabase } = await import("./database/seed.js");
-        await seedDatabase();
-        console.log("✅ Seed completed");
-      } catch (error) {
-        console.error("⚠️  Seed error:", error.message);
-      }
+    // Run migrations automatically
+    console.log("📦 Running database migrations...");
+    try {
+      const { runMigrations } = await import("./database/migrate.js");
+      await runMigrations();
+      console.log("✅ Migrations completed");
+    } catch (error) {
+      console.error("⚠️  Migration error:", error.message);
+      // Continue even if migration fails - tables might already exist
+    }
+    
+    // Run seed automatically (will skip if data already exists)
+    console.log("🌱 Running database seed...");
+    try {
+      const { seedDatabase } = await import("./database/seed.js");
+      await seedDatabase();
+      console.log("✅ Seed completed");
+    } catch (error) {
+      console.error("⚠️  Seed error:", error.message);
     }
     
     const dbConnected = await testConnection();

@@ -303,8 +303,15 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       
       // Show success toast
       toast.showSuccess('Cart updated successfully');
-    } catch (error) {
+    } catch (error: any) {
       dispatch({ type: 'SET_CART_LOADING', payload: false });
+      
+      // If item not found (404), remove it from local state
+      if (error?.response?.status === 404) {
+        dispatch({ type: 'REMOVE_CART_ITEM', payload: itemId });
+        toast.showWarning('Item was removed from cart as it no longer exists');
+        return;
+      }
       
       // Show error toast
       const errorMessage = error instanceof Error ? error.message : 'Failed to update cart item';
@@ -327,7 +334,14 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       
       // Show success toast
       toast.showSuccess('Item removed from cart');
-    } catch (error) {
+    } catch (error: any) {
+      // If item not found (404), still remove it from local state
+      if (error?.response?.status === 404) {
+        dispatch({ type: 'REMOVE_CART_ITEM', payload: itemId });
+        toast.showSuccess('Item removed from cart');
+        return;
+      }
+      
       dispatch({ type: 'SET_CART_LOADING', payload: false });
       
       // Show error toast
