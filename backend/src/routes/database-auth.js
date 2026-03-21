@@ -52,7 +52,11 @@ export const dbAdminAuth = async (req, res, next) => {
   try {
     const token = req.headers.authorization?.replace('Bearer ', '') || req.headers['x-auth-token']
     
+    console.log('Admin auth check - Token present:', !!token)
+    console.log('Admin auth check - Token (first 10 chars):', token?.substring(0, 10))
+    
     if (!token) {
+      console.log('Admin auth failed: No token provided')
       return res.status(401).json({
         error: 'Authentication required - no token provided'
       })
@@ -64,15 +68,20 @@ export const dbAdminAuth = async (req, res, next) => {
       [token]
     )
 
+    console.log('Admin auth check - Token found in DB:', result.rows.length > 0)
+    
     if (result.rows.length === 0) {
+      console.log('Admin auth failed: Invalid or expired token')
       return res.status(401).json({
         error: 'Invalid or expired token - please login again'
       })
     }
 
     const user = result.rows[0]
+    console.log('Admin auth check - User:', user.email, 'is_admin:', user.is_admin)
     
     if (!user.is_admin) {
+      console.log('Admin auth failed: User is not admin')
       return res.status(403).json({
         error: 'Admin access required'
       })
@@ -84,11 +93,14 @@ export const dbAdminAuth = async (req, res, next) => {
       isAdmin: user.is_admin
     }
     
+    console.log('Admin auth success for:', user.email)
     next()
   } catch (error) {
     console.error('Admin auth middleware error:', error)
+    console.error('Error stack:', error.stack)
     res.status(500).json({
-      error: 'Authentication error'
+      error: 'Authentication error',
+      details: error.message
     })
   }
 }
