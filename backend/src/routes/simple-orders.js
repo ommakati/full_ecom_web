@@ -52,18 +52,10 @@ router.get('/', simpleAuth, async (req, res) => {
 })
 
 // GET /api/orders/admin/all - Get all orders (admin only)
-router.get('/admin/all', async (req, res) => {
+router.get('/admin/all', simpleAdminAuth, async (req, res) => {
   try {
-    // Check login
-    if (!req.session.user) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
-
-    // Check admin
-    if (req.session.user.role !== 'admin') {
-      return res.status(403).json({ error: "Forbidden" });
-    }
-
+    console.log('ADMIN ORDERS: User authenticated:', req.user);
+    
     const result = await query(`
       SELECT o.*, u.email 
       FROM orders o
