@@ -56,9 +56,13 @@ api.interceptors.response.use(
   (error) => {
     // Handle common error scenarios
     if (error.response?.status === 401) {
-  console.warn("Unauthorized access - token removed");
-}
-     else if (error.response?.status >= 500) {
+      console.warn("Unauthorized access - token removed");
+      TokenStorage.removeToken();
+      // Redirect to login if not already on login page
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
+      }
+    } else if (error.response?.status >= 500) {
       // Handle server errors
       console.error('Server error:', error.response.data);
     }
