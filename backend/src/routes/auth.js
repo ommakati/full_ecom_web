@@ -170,38 +170,49 @@ router.post('/login', async (req, res) => {
       })
     }
 
-// Create session
-req.session.userId = user.id;
-req.session.email = user.email;
+    // Create session
+    req.session.userId = user.id;
+    req.session.email = user.email;
 
-// ✅ FIX HERE (convert to boolean)
-req.session.isAdmin = user.is_admin === true || user.is_admin === 1;
+    // ✅ FIX HERE (convert to boolean)
+    req.session.isAdmin = user.is_admin === true || user.is_admin === 1;
 
-// Force session save
-req.session.save((err) => {
-  if (err) {
-    console.error("❌ Session save error:", err);
+    // Force session save
+    req.session.save((err) => {
+      if (err) {
+        console.error("❌ Session save error:", err);
 
-    return res.status(500).json({
-      error: {
-        code: "SESSION_ERROR",
-        message: "Failed to create session",
-        timestamp: new Date().toISOString(),
-      },
+        return res.status(500).json({
+          error: {
+            code: "SESSION_ERROR",
+            message: "Failed to create session",
+            timestamp: new Date().toISOString(),
+          },
+        });
+      }
+
+      console.log("✅ SESSION CREATED:", req.session);
+
+      res.json({
+        user: {
+          id: user.id,
+          email: user.email,
+          isAdmin: req.session.isAdmin, // use session value
+          createdAt: user.created_at,
+        },
+      });
     });
+  } catch (error) {
+    console.error('Login error:', error)
+    res.status(500).json({
+      error: {
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to login user',
+        timestamp: new Date().toISOString()
+      }
+    })
   }
-
-  console.log("✅ SESSION CREATED:", req.session);
-
-  res.json({
-    user: {
-      id: user.id,
-      email: user.email,
-      isAdmin: req.session.isAdmin, // use session value
-      createdAt: user.created_at,
-    },
-  });
-});
+})
 
 // User logout endpoint
 router.post('/logout', (req, res) => {
