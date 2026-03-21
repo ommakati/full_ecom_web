@@ -40,7 +40,8 @@ app.get("/api/health", async (req, res) => {
       message: "Database-backed E-Commerce API is running",
       environment: process.env.NODE_ENV || "development",
       database: dbConnected ? "connected" : "disconnected",
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      version: "2.0.0"
     });
   } catch (error) {
     res.status(503).json({
