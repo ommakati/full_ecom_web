@@ -114,6 +114,20 @@ router.delete('/:id', simpleAdminAuth, async (req, res) => {
   try {
     const { id } = req.params
     
+    // Check if product has been ordered
+    const orderCheck = await query(
+      'SELECT COUNT(*) as order_count FROM order_items WHERE product_id = $1',
+      [id]
+    )
+    
+    if (parseInt(orderCheck.rows[0].order_count) > 0) {
+      return res.status(400).json({
+        error: 'Cannot delete product',
+        message: 'This product has been ordered and cannot be deleted. Consider marking it as unavailable instead.',
+        details: `Product is referenced in ${orderCheck.rows[0].order_count} order(s)`
+      })
+    }
+    
     const result = await query(
       'DELETE FROM products WHERE id = $1 RETURNING id, name',
       [id]
