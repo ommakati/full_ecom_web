@@ -53,9 +53,13 @@ router.get('/:id', async (req, res) => {
 // POST /api/products - Create product (admin only)
 router.post('/', dbAdminAuth, async (req, res) => {
   try {
+    console.log('Creating product with data:', req.body)
+    console.log('User:', req.user)
+    
     const { name, description, price, image_url } = req.body
     
     if (!name || !price) {
+      console.log('Validation failed: missing name or price')
       return res.status(400).json({
         error: 'Name and price are required'
       })
@@ -63,19 +67,23 @@ router.post('/', dbAdminAuth, async (req, res) => {
     
     const numericPrice = parseFloat(price)
     if (isNaN(numericPrice) || numericPrice <= 0) {
+      console.log('Validation failed: invalid price', price)
       return res.status(400).json({
         error: 'Price must be a valid positive number'
       })
     }
     
+    console.log('Inserting product into database...')
     const result = await query(
       'INSERT INTO products (name, description, price, image_url) VALUES ($1, $2, $3, $4) RETURNING *',
       [name.trim(), description?.trim() || null, numericPrice, image_url?.trim() || null]
     )
     
+    console.log('Product created successfully:', result.rows[0])
     res.status(201).json(result.rows[0])
   } catch (error) {
     console.error('Error creating product:', error)
+    console.error('Error stack:', error.stack)
     res.status(500).json({
       error: 'Failed to create product',
       details: error.message
