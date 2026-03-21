@@ -53,8 +53,10 @@ router.get('/:id', async (req, res) => {
 // POST /api/products - Create product (admin only)
 router.post('/', dbAdminAuth, async (req, res) => {
   try {
-    console.log('Creating product with data:', req.body)
-    console.log('User:', req.user)
+    console.log('=== CREATE PRODUCT REQUEST ===')
+    console.log('Body:', JSON.stringify(req.body, null, 2))
+    console.log('User:', JSON.stringify(req.user, null, 2))
+    console.log('Headers:', JSON.stringify(req.headers, null, 2))
     
     const { name, description, price, image_url } = req.body
     
@@ -81,7 +83,14 @@ router.post('/', dbAdminAuth, async (req, res) => {
       })
     }
     
-    console.log('Inserting product into database...')
+    console.log('Validation passed, inserting into database...')
+    console.log('Values:', {
+      name: name.trim(),
+      description: description?.trim() || null,
+      price: numericPrice,
+      image_url: image_url?.trim() || null
+    })
+    
     const result = await query(
       'INSERT INTO products (name, description, price, image_url) VALUES ($1, $2, $3, $4) RETURNING *',
       [name.trim(), description?.trim() || null, numericPrice, image_url?.trim() || null]
@@ -90,11 +99,15 @@ router.post('/', dbAdminAuth, async (req, res) => {
     console.log('Product created successfully:', result.rows[0])
     res.status(201).json(result.rows[0])
   } catch (error) {
-    console.error('Error creating product:', error)
+    console.error('=== CREATE PRODUCT ERROR ===')
+    console.error('Error message:', error.message)
+    console.error('Error code:', error.code)
+    console.error('Error detail:', error.detail)
     console.error('Error stack:', error.stack)
     res.status(500).json({
       error: 'Failed to create product',
-      details: error.message
+      details: error.message,
+      code: error.code
     })
   }
 })
