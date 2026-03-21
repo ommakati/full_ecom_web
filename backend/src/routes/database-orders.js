@@ -51,6 +51,69 @@ router.get('/', dbAuth, async (req, res) => {
   }
 })
 
+// GET /api/orders/:id - Get single order by ID
+router.get('/:id', dbAuth, async (req, res) => {
+  try {
+    const { id } = req.params
+    const userId = req.user.id
+    const isAdmin = req.user.isAdmin
+    
+    // Build query based on user role
+    let whereClause = 'WHERE o.id = $1'
+    let params = [id]
+    
+    // Non-admin users can only see their own orders
+    if (!isAdmin) {
+      whereClause += ' AND o.user_id = $2'
+      params.push(userId)
+    }
+    
+    const result = await query(`
+      SELECT 
+        o.id,
+        o.user_id,
+        u.email as user_email,
+        o.total_amount,
+        o.status,
+        o.created_at,
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'id', oi.id,
+              'product_id', oi.product_id,
+              'product_name', p.name,
+              'product_image_url', p.image_url,
+              'quantity', oi.quantity,
+              'price', oi.price,
+              'item_total', (oi.quantity * oi.price)
+            )
+          ) FILTER (WHERE oi.id IS NOT NULL),
+          '[]'::json
+        ) as items
+      FROM orders o
+      LEFT JOIN users u ON o.user_id = u.id
+      LEFT JOIN order_items oi ON o.id = oi.order_id
+      LEFT JOIN products p ON oi.product_id = p.id
+      ${whereClause}
+      GROUP BY o.id, o.user_id, u.email, o.total_amount, o.status, o.created_at
+    `, params)
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error: 'Order not found'
+      })
+    }
+    
+    res.json(result.rows[0])
+  } catch (error) {
+    console.error('Error fetching order:', error)
+    res.status(500).json({
+      error: 'Failed to fetch order',
+      details: error.message
+    })
+  }
+})
+
 // GET /api/orders/admin/all - Get all orders (admin only)
 router.get('/admin/all', dbAdminAuth, async (req, res) => {
   try {
