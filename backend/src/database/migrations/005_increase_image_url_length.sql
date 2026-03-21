@@ -1,3 +1,3 @@
--- Increase image_url column length to handle longer URLs
+-- Change image_url column to TEXT for unlimited length
 ALTER TABLE products 
-ALTER COLUMN image_url TYPE VARCHAR(21000);
+ALTER COLUMN image_url TYPE TEXT;
