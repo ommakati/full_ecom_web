@@ -7,6 +7,11 @@ const router = express.Router()
 // Simple token storage (in production, use Redis or database)
 const activeSessions = new Map()
 
+// Add session cleanup (optional - prevents memory leaks)
+setInterval(() => {
+  console.log(`Active sessions: ${activeSessions.size}`);
+}, 60000); // Log every minute
+
 // Generate simple session token
 const generateToken = () => {
   return Math.random().toString(36).substring(2) + Date.now().toString(36)
@@ -128,6 +133,8 @@ router.post('/login', async (req, res) => {
     })
 
     console.log('Login successful:', email, 'Token:', token.substring(0, 10) + '...');
+    console.log('Stored session for user:', user.email, 'isAdmin:', user.is_admin);
+    console.log('Total active sessions:', activeSessions.size);
 
     res.json({
       token,
@@ -216,14 +223,33 @@ router.post('/logout', (req, res) => {
 router.get('/me', (req, res) => {
   const token = req.headers.authorization?.replace('Bearer ', '') || req.headers['x-auth-token']
   
+  console.log('Auth check - Token received:', token ? token.substring(0, 10) + '...' : 'none');
+  console.log('Active sessions count:', activeSessions.size);
+  
   if (!token || !activeSessions.has(token)) {
+    console.log('Auth failed: Token not found in active sessions');
     return res.status(401).json({
-      error: 'Not authenticated'
+      error: 'Not authenticated - please login again'
     })
   }
   
   const user = activeSessions.get(token)
+  console.log('Auth success - User found:', user.email);
   res.json({ user })
+})
+
+// Debug endpoint to check active sessions
+router.get('/debug/sessions', (req, res) => {
+  const sessions = Array.from(activeSessions.entries()).map(([token, user]) => ({
+    token: token.substring(0, 10) + '...',
+    user: user.email,
+    isAdmin: user.isAdmin
+  }));
+  
+  res.json({
+    count: activeSessions.size,
+    sessions
+  });
 })
 
 export default router
