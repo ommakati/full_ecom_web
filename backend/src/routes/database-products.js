@@ -176,24 +176,5 @@ router.delete('/:id', dbAdminAuth, async (req, res) => {
     })
   }
 })
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({
-        error: 'Product not found'
-      })
-    }
-    
-    res.json({
-      message: 'Product deleted successfully',
-      product: result.rows[0]
-    })
-  } catch (error) {
-    console.error('Error deleting product:', error)
-    res.status(500).json({
-      error: 'Failed to delete product',
-      details: error.message
-    })
-  }
-})
 
 export default router
