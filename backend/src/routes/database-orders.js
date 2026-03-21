@@ -101,23 +101,31 @@ router.get('/admin/all', dbAdminAuth, async (req, res) => {
 router.post('/', dbAuth, async (req, res) => {
   try {
     const userId = req.user.id
-    const { items } = req.body
     
-    if (!items || !Array.isArray(items) || items.length === 0) {
+    // Get cart items from database
+    const cartResult = await query(`
+      SELECT 
+        ci.product_id,
+        ci.quantity,
+        p.price
+      FROM cart_items ci
+      JOIN products p ON ci.product_id = p.id
+      WHERE ci.user_id = $1
+    `, [userId])
+    
+    if (cartResult.rows.length === 0) {
       return res.status(400).json({
-        error: 'Order items are required'
+        error: 'Cart is empty',
+        message: 'Cannot create order with empty cart'
       })
     }
+    
+    const items = cartResult.rows
     
     // Calculate total amount
     let totalAmount = 0
     for (const item of items) {
-      if (!item.product_id || !item.quantity || !item.price) {
-        return res.status(400).json({
-          error: 'Each item must have product_id, quantity, and price'
-        })
-      }
-      totalAmount += item.quantity * item.price
+      totalAmount += item.quantity * parseFloat(item.price)
     }
     
     // Start transaction
@@ -140,6 +148,9 @@ router.post('/', dbAuth, async (req, res) => {
         )
       }
       
+      // Clear cart after successful order
+      await query('DELETE FROM cart_items WHERE user_id = $1', [userId])
+      
       // Commit transaction
       await query('COMMIT')
       
@@ -148,8 +159,10 @@ router.post('/', dbAuth, async (req, res) => {
         order: {
           ...order,
           items: items.map(item => ({
-            ...item,
-            item_total: item.quantity * item.price
+            product_id: item.product_id,
+            quantity: item.quantity,
+            price: parseFloat(item.price),
+            item_total: item.quantity * parseFloat(item.price)
           }))
         }
       })
