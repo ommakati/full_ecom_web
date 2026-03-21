@@ -7,6 +7,7 @@
     "start": "node src/database-server.js",
     "start:simple": "node src/simple-server.js",
     "start:original": "node src/server.js",
+    "build": "echo 'No build step required'",
     "test": "cd .. && node --experimental-vm-modules node_modules/.bin/jest --runInBand --config backend/jest.config.js",
     "test:watch": "node --experimental-vm-modules $(npx which jest) --watch --runInBand",
     "migrate": "node src/database/migrate.js",

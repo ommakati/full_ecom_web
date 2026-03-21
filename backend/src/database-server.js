@@ -90,6 +90,8 @@ app.use((error, req, res, next) => {
 const startServer = async () => {
   try {
     console.log("🚀 Starting database-backed server...");
+console.log("📦 Using database-server.js (NOT simple-server.js)");
+console.log("🔑 Token-based authentication enabled");
     
     // Test database connection
     const dbConnected = await testConnection();
