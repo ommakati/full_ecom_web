@@ -111,7 +111,7 @@ const AdminDashboard: React.FC = () => {
               <div key={order.id} className="recent-order-item">
                 <div className="recent-order-item__info">
                   <span className="order-id">Order #{order.id.slice(0, 8)}</span>
-                  <span className="order-total">${order.total_amount.toFixed(2)}</span>
+                  <span className="order-total">${parseFloat(order.total_amount).toFixed(2)}</span>
                 </div>
                 <div className="recent-order-item__meta">
                   <span className="order-status">{order.status}</span>

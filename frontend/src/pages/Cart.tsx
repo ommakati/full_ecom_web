@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useApp } from '../contexts/AppContext';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { formatPrice, calculateItemTotal } from '../utils/formatters';
 import './Cart.css';
 
 const Cart: React.FC = () => {
@@ -55,13 +56,6 @@ const Cart: React.FC = () => {
       console.error('Error clearing cart:', error);
       setError('Failed to clear cart');
     }
-  };
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(price);
   };
 
   const getTotalItems = () => {
@@ -181,8 +175,8 @@ const Cart: React.FC = () => {
                     </div>
                   </div>
                   
-                  <div className="cart-item-total" aria-label={`Subtotal: ${formatPrice(item.product.price * item.quantity)}`}>
-                    {formatPrice(item.product.price * item.quantity)}
+                  <div className="cart-item-total" aria-label={`Subtotal: ${formatPrice(calculateItemTotal(item.product.price, item.quantity))}`}>
+                    {formatPrice(calculateItemTotal(item.product.price, item.quantity))}
                   </div>
                   
                   <div className="cart-item-actions">

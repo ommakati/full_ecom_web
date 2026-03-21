@@ -98,9 +98,9 @@ const AdminOrders: React.FC = () => {
     });
   };
 
-  const formatCurrency = (amount: number) => {
-    return `$${amount.toFixed(2)}`;
-  };
+  const formatCurrency = (amount: number | string) => {
+      return `${parseFloat(String(amount)).toFixed(2)}`;
+    };
 
   if (loading) {
     return (

@@ -1,43 +1,34 @@
 // Utility functions for formatting data
 
 /**
- * Format price as currency
+ * Format a price value (number or string) as currency
+ * Handles both numeric and string inputs from database
  */
-export const formatPrice = (price: number): string => {
+export const formatPrice = (price: number | string): string => {
+  const numericPrice = typeof price === 'string' ? parseFloat(price) : price;
+  
+  if (isNaN(numericPrice)) {
+    return '$0.00';
+  }
+  
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
-  }).format(price);
+  }).format(numericPrice);
 };
 
 /**
- * Format date for display
+ * Convert a price value to a number
+ * Handles both numeric and string inputs from database
  */
-export const formatDate = (dateString: string): string => {
-  return new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  }).format(new Date(dateString));
+export const toNumber = (value: number | string): number => {
+  const numericValue = typeof value === 'string' ? parseFloat(value) : value;
+  return isNaN(numericValue) ? 0 : numericValue;
 };
 
 /**
- * Format date and time for display
+ * Calculate item total safely
  */
-export const formatDateTime = (dateString: string): string => {
-  return new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(new Date(dateString));
-};
-
-/**
- * Truncate text to specified length
- */
-export const truncateText = (text: string, maxLength: number): string => {
-  if (text.length <= maxLength) return text;
-  return text.substring(0, maxLength).trim() + '...';
+export const calculateItemTotal = (price: number | string, quantity: number): number => {
+  return toNumber(price) * quantity;
 };
