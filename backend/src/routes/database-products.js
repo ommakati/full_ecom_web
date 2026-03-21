@@ -61,9 +61,16 @@ router.post('/', dbAdminAuth, async (req, res) => {
       })
     }
     
+    const numericPrice = parseFloat(price)
+    if (isNaN(numericPrice) || numericPrice <= 0) {
+      return res.status(400).json({
+        error: 'Price must be a valid positive number'
+      })
+    }
+    
     const result = await query(
       'INSERT INTO products (name, description, price, image_url) VALUES ($1, $2, $3, $4) RETURNING *',
-      [name.trim(), description?.trim() || null, parseFloat(price), image_url?.trim() || null]
+      [name.trim(), description?.trim() || null, numericPrice, image_url?.trim() || null]
     )
     
     res.status(201).json(result.rows[0])

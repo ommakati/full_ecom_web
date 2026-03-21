@@ -31,7 +31,7 @@ export const orderService = {
   // Create new order
   createOrder: async (): Promise<Order> => {
     const response = await api.post('/orders');
-    return response.data;
+    return response.data.order || response.data;
   },
 
   // Get user's orders
