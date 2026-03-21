@@ -11,130 +11,116 @@ import apiRoutes from "./routes/index.js";
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 10000; // Render uses dynamic port
+const PORT = process.env.PORT || 10000;
 
-// Security middleware
+// ✅ VERY IMPORTANT FOR RENDER (fix cookies)
+app.set("trust proxy", 1);
+
+// ================= SECURITY =================
 app.use(helmet());
 
-// CORS configuration
+// ================= CORS =================
+const allowedOrigins = [
+  "https://full-ecom-web-frontend.vercel.app",
+  "http://localhost:3000"
+];
+
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin (mobile apps, curl, etc.)
-      if (!origin) return callback(null, true);
-      
-      const allowedOrigins = [
-        process.env.FRONTEND_URL || "https://full-ecom-web-frontend.vercel.app",
-        "http://localhost:3000",
-        "http://localhost:3001",
-        "https://full-ecom-web-frontend.vercel.app"
-      ];
-      
-      if (allowedOrigins.indexOf(origin) !== -1) {
+      if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        console.log('CORS blocked origin:', origin);
-        callback(null, true); // Allow all origins in production for now
+        console.log("❌ Blocked by CORS:", origin);
+        callback(new Error("Not allowed by CORS"));
       }
     },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
-    exposedHeaders: ['Set-Cookie'],
   })
 );
 
-// Body parsing
+// ================= BODY PARSER =================
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Session configuration
+// ================= SESSION =================
 app.use(
   session({
+    name: "ecommerce.sid",
     secret: process.env.SESSION_SECRET || "secret",
-    resave: true, // Force session save
-    saveUninitialized: true, // Save uninitialized sessions
-    cookie: {
-      secure: process.env.NODE_ENV === "production",
-      httpOnly: false, // Allow client-side access for debugging
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      domain: process.env.NODE_ENV === "production" ? undefined : undefined, // Let browser handle domain
-    },
+    resave: false,
+    saveUninitialized: false,
     proxy: true,
-    name: 'ecommerce.sid', // Custom session name
+    cookie: {
+      secure: true,         // required for HTTPS (Render)
+      httpOnly: true,
+      sameSite: "none",     // required for Vercel ↔ Render
+      maxAge: 24 * 60 * 60 * 1000,
+    },
   })
 );
 
-// Rate limit
+// ================= RATE LIMIT =================
 app.use("/api", rateLimit());
 
-// API Routes
+// ================= ROUTES =================
 app.use("/api", apiRoutes);
 
-// Health check route (VERY IMPORTANT for testing)
-app.get("/api/test", (req, res) => {
-  res.json({ 
-    message: "API working",
-    session: req.session ? {
-      id: req.session.id,
-      userId: req.session.userId,
-      isAdmin: req.session.isAdmin
-    } : null,
-    cookies: req.headers.cookie || 'No cookies'
+// ================= DEBUG ROUTE =================
+app.get("/api/debug-session", (req, res) => {
+  res.json({
+    session: req.session,
+    cookies: req.headers.cookie || "No cookies",
   });
 });
 
-// 404 handler
+// ================= HEALTH CHECK =================
+app.get("/api/test", (req, res) => {
+  res.json({
+    message: "API working",
+    session: req.session,
+  });
+});
+
+// ================= 404 =================
 app.use((req, res) => {
   res.status(404).json({
     error: "Route not found",
   });
 });
 
-// Start server
+// ================= START SERVER =================
 const startServer = async () => {
   try {
     console.log("🚀 Starting server...");
-    
-    // Run migrations automatically
-    console.log("📦 Running database migrations...");
+
+    // Run migrations
     try {
       const { runMigrations } = await import("./database/migrate.js");
       await runMigrations();
       console.log("✅ Migrations completed");
-    } catch (error) {
-      console.error("⚠️  Migration error:", error.message);
-      // Continue even if migration fails - tables might already exist
+    } catch (err) {
+      console.warn("⚠️ Migration skipped:", err.message);
     }
-    
-    // Run seed automatically (will skip if data already exists)
-    console.log("🌱 Running database seed...");
+
+    // Run seed
     try {
-      const { seedDatabase } = await import("./database/seed.js");
+      const { seedDatabase, ensureAdminUser } = await import("./database/seed.js");
       await seedDatabase();
-      console.log("✅ Seed completed");
-    } catch (error) {
-      console.error("⚠️  Seed error:", error.message);
-    }
-    
-    // Ensure admin user exists
-    console.log("👤 Ensuring admin user exists...");
-    try {
-      const { ensureAdminUser } = await import("./database/seed.js");
       await ensureAdminUser();
-      console.log("✅ Admin user verified");
-    } catch (error) {
-      console.error("⚠️  Admin user error:", error.message);
+      console.log("✅ Seed & admin setup done");
+    } catch (err) {
+      console.warn("⚠️ Seed skipped:", err.message);
     }
-    
+
     const dbConnected = await testConnection();
 
     app.listen(PORT, () => {
       console.log(`✅ Server running on port ${PORT}`);
-      console.log(`📦 Environment: ${process.env.NODE_ENV || "development"}`);
-      console.log(`💾 Database: ${dbConnected ? "Connected" : "Disconnected"}`);
+      console.log(`📦 ENV: ${process.env.NODE_ENV || "development"}`);
+      console.log(`💾 DB: ${dbConnected ? "Connected" : "Disconnected"}`);
     });
+
   } catch (error) {
     console.error("❌ Server failed:", error);
     process.exit(1);

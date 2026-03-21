@@ -56,10 +56,9 @@ api.interceptors.response.use(
   (error) => {
     // Handle common error scenarios
     if (error.response?.status === 401) {
-      // Handle unauthorized access - remove invalid token
-      TokenStorage.removeToken();
-      console.warn('Unauthorized access - token removed');
-    } else if (error.response?.status >= 500) {
+  console.warn("Unauthorized access - token removed");
+}
+     else if (error.response?.status >= 500) {
       // Handle server errors
       console.error('Server error:', error.response.data);
     }

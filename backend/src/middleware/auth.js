@@ -1,33 +1,70 @@
-// Authentication middleware
+// ================= REQUIRE AUTH =================
 export const requireAuth = (req, res, next) => {
-  if (!req.session || !req.session.userId) {
-    return res.status(401).json({
-      error: {
-        code: 'UNAUTHORIZED',
-        message: 'Authentication required',
-        timestamp: new Date().toISOString()
-      }
-    })
-  }
-  next()
-}
+  try {
+    if (!req.session || !req.session.userId) {
+      return res.status(401).json({
+        error: {
+          code: "UNAUTHORIZED",
+          message: "Authentication required",
+          timestamp: new Date().toISOString(),
+        },
+      });
+    }
 
-// Admin authentication middleware
+    next();
+  } catch (error) {
+    console.error("❌ AUTH ERROR:", error);
+    res.status(500).json({
+      error: {
+        code: "AUTH_ERROR",
+        message: error.message,
+      },
+    });
+  }
+};
+
+// ================= REQUIRE ADMIN =================
 export const requireAdmin = (req, res, next) => {
-  if (!req.session || !req.session.userId || !req.session.isAdmin) {
-    return res.status(403).json({
-      error: {
-        code: 'FORBIDDEN',
-        message: 'Admin access required',
-        timestamp: new Date().toISOString()
-      }
-    })
-  }
-  next()
-}
+  try {
+    if (!req.session || !req.session.userId) {
+      return res.status(401).json({
+        error: {
+          code: "UNAUTHORIZED",
+          message: "Authentication required",
+          timestamp: new Date().toISOString(),
+        },
+      });
+    }
 
-// Optional authentication middleware (doesn't block if not authenticated)
+    if (!req.session.isAdmin) {
+      return res.status(403).json({
+        error: {
+          code: "FORBIDDEN",
+          message: "Admin access required",
+          timestamp: new Date().toISOString(),
+        },
+      });
+    }
+
+    next();
+  } catch (error) {
+    console.error("❌ ADMIN AUTH ERROR:", error);
+    res.status(500).json({
+      error: {
+        code: "AUTH_ERROR",
+        message: error.message,
+      },
+    });
+  }
+};
+
+// ================= OPTIONAL AUTH =================
 export const optionalAuth = (req, res, next) => {
-  // Just pass through - user info will be available in req.session if logged in
-  next()
-}
+  try {
+    // session will exist if logged in
+    next();
+  } catch (error) {
+    console.error("❌ OPTIONAL AUTH ERROR:", error);
+    next();
+  }
+};

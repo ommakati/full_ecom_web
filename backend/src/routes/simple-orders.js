@@ -16,16 +16,19 @@ router.get('/', simpleAuth, async (req, res) => {
         o.total_amount,
         o.status,
         o.created_at,
-        json_agg(
-          json_build_object(
-            'id', oi.id,
-            'product_id', oi.product_id,
-            'product_name', p.name,
-            'product_image_url', p.image_url,
-            'quantity', oi.quantity,
-            'price', oi.price,
-            'item_total', oi.item_total
-          )
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'id', oi.id,
+              'product_id', oi.product_id,
+              'product_name', p.name,
+              'product_image_url', p.image_url,
+              'quantity', oi.quantity,
+              'price', oi.price,
+              'item_total', oi.item_total
+            )
+          ) FILTER (WHERE oi.id IS NOT NULL),
+          '[]'::json
         ) as items
       FROM orders o
       LEFT JOIN order_items oi ON o.id = oi.order_id
@@ -49,47 +52,35 @@ router.get('/', simpleAuth, async (req, res) => {
 })
 
 // GET /api/orders/admin/all - Get all orders (admin only)
-router.get('/admin/all', simpleAdminAuth, async (req, res) => {
+router.get('/admin/all', async (req, res) => {
   try {
+    // Check login
+    if (!req.session.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    // Check admin
+    if (req.session.user.role !== 'admin') {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
     const result = await query(`
-      SELECT 
-        o.id,
-        o.user_id,
-        u.email as user_email,
-        o.total_amount,
-        o.status,
-        o.created_at,
-        json_agg(
-          json_build_object(
-            'id', oi.id,
-            'product_id', oi.product_id,
-            'product_name', p.name,
-            'product_image_url', p.image_url,
-            'quantity', oi.quantity,
-            'price', oi.price,
-            'item_total', oi.item_total
-          )
-        ) as items
+      SELECT o.*, u.email 
       FROM orders o
-      LEFT JOIN users u ON o.user_id = u.id
-      LEFT JOIN order_items oi ON o.id = oi.order_id
-      LEFT JOIN products p ON oi.product_id = p.id
-      GROUP BY o.id, o.user_id, u.email, o.total_amount, o.status, o.created_at
+      JOIN users u ON o.user_id = u.id
       ORDER BY o.created_at DESC
-    `)
-    
-    res.json({
-      orders: result.rows,
-      total_orders: result.rows.length
-    })
+    `);
+
+    res.json(result.rows);
+
   } catch (error) {
-    console.error('Error fetching all orders:', error)
+    console.error("❌ ADMIN ORDERS ERROR:", error);
+
     res.status(500).json({
-      error: 'Failed to fetch orders',
-      details: error.message
-    })
+      error: error.message
+    });
   }
-})
+});
 
 // PATCH /api/orders/admin/:id/status - Update order status (admin only)
 router.patch('/admin/:id/status', simpleAdminAuth, async (req, res) => {

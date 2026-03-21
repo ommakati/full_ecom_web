@@ -23,12 +23,21 @@ export const simpleAuth = (req, res, next) => {
   
   if (!token || !activeSessions.has(token)) {
     return res.status(401).json({
-      error: 'Authentication required',
+      error: 'Authentication required - please login again',
       code: 'UNAUTHORIZED'
     })
   }
   
-  req.user = activeSessions.get(token)
+  const user = activeSessions.get(token)
+  
+  if (!user) {
+    return res.status(401).json({
+      error: 'Invalid token - please login again',
+      code: 'UNAUTHORIZED'
+    })
+  }
+  
+  req.user = user
   next()
 }
 
@@ -36,21 +45,36 @@ export const simpleAuth = (req, res, next) => {
 export const simpleAdminAuth = (req, res, next) => {
   const token = req.headers.authorization?.replace('Bearer ', '') || req.headers['x-auth-token']
   
+  console.log('Admin auth check - Token:', token ? token.substring(0, 10) + '...' : 'none');
+  console.log('Active sessions count:', activeSessions.size);
+  
   if (!token || !activeSessions.has(token)) {
+    console.log('Admin auth failed: No valid token');
     return res.status(401).json({
-      error: 'Authentication required',
+      error: 'Authentication required - please login again',
       code: 'UNAUTHORIZED'
     })
   }
   
   const user = activeSessions.get(token)
+  
+  if (!user) {
+    console.log('Admin auth failed: User not found for token');
+    return res.status(401).json({
+      error: 'Invalid token - please login again',
+      code: 'UNAUTHORIZED'
+    })
+  }
+  
   if (!user.isAdmin) {
+    console.log('Admin auth failed: User is not admin:', user.email);
     return res.status(403).json({
       error: 'Admin access required',
       code: 'FORBIDDEN'
     })
   }
   
+  console.log('Admin auth success:', user.email);
   req.user = user
   next()
 }
