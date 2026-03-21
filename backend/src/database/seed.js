@@ -127,12 +127,13 @@ export const ensureAdminUser = async () => {
     const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com'
     const adminPassword = process.env.ADMIN_PASSWORD || 'admin123'
     
+    console.log(`🔍 Checking admin user: ${adminEmail}`)
+    
     // Check if admin user exists
-    const existingAdmin = await query('SELECT id FROM users WHERE email = $1', [adminEmail])
+    const existingAdmin = await query('SELECT id, is_admin FROM users WHERE email = $1', [adminEmail])
     
     if (existingAdmin.rows.length === 0) {
-      console.log('Creating admin user...')
-      const bcrypt = await import('bcrypt')
+      console.log('📝 Creating admin user...')
       const passwordHash = await bcrypt.hash(adminPassword, 12)
       
       await query(
@@ -142,10 +143,25 @@ export const ensureAdminUser = async () => {
       
       console.log(`✅ Admin user created: ${adminEmail}`)
     } else {
-      console.log(`✅ Admin user exists: ${adminEmail}`)
+      const user = existingAdmin.rows[0]
+      console.log(`✅ Admin user exists: ${adminEmail}, is_admin: ${user.is_admin}`)
+      
+      // Ensure is_admin flag is set to true
+      if (!user.is_admin) {
+        console.log('🔧 Updating is_admin flag to true...')
+        await query('UPDATE users SET is_admin = true WHERE email = $1', [adminEmail])
+        console.log('✅ Admin flag updated')
+      }
+    }
+    
+    // Verify admin user
+    const verifyAdmin = await query('SELECT id, email, is_admin FROM users WHERE email = $1', [adminEmail])
+    if (verifyAdmin.rows.length > 0) {
+      console.log('✅ Admin verification:', verifyAdmin.rows[0])
     }
   } catch (error) {
     console.error('❌ Error ensuring admin user:', error)
+    console.error('Error stack:', error.stack)
     throw error
   }
 }
