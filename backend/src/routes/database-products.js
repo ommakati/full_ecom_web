@@ -129,24 +129,53 @@ router.delete('/:id', dbAdminAuth, async (req, res) => {
   try {
     const { id } = req.params
     
+    console.log('Attempting to delete product:', id)
+    console.log('User:', req.user)
+    
     // Check if product has been ordered
     const orderCheck = await query(
       'SELECT COUNT(*) as order_count FROM order_items WHERE product_id = $1',
       [id]
     )
     
-    if (parseInt(orderCheck.rows[0].order_count) > 0) {
-      return res.status(400).json({
-        error: 'Cannot delete product',
-        message: 'This product has been ordered and cannot be deleted. Consider marking it as unavailable instead.',
-        details: `Product is referenced in ${orderCheck.rows[0].order_count} order(s)`
-      })
+    const orderCount = parseInt(orderCheck.rows[0].order_count)
+    console.log('Product has been ordered', orderCount, 'times')
+    
+    if (orderCount > 0) {
+      // Option: Delete order items first, then delete product
+      // This keeps orders but removes product details
+      console.log('Deleting order items first...')
+      await query('DELETE FROM order_items WHERE product_id = $1', [id])
+      console.log('Order items deleted')
     }
     
     const result = await query(
       'DELETE FROM products WHERE id = $1 RETURNING id, name',
       [id]
     )
+    
+    if (result.rows.length === 0) {
+      console.log('Product not found')
+      return res.status(404).json({
+        error: 'Product not found'
+      })
+    }
+    
+    console.log('Product deleted successfully:', result.rows[0])
+    res.json({
+      message: 'Product deleted successfully',
+      product: result.rows[0],
+      warning: orderCount > 0 ? `Product was removed from ${orderCount} order(s)` : null
+    })
+  } catch (error) {
+    console.error('Error deleting product:', error)
+    console.error('Error stack:', error.stack)
+    res.status(500).json({
+      error: 'Failed to delete product',
+      details: error.message
+    })
+  }
+})
     
     if (result.rows.length === 0) {
       return res.status(404).json({

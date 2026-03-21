@@ -120,12 +120,11 @@ router.delete('/:id', simpleAdminAuth, async (req, res) => {
       [id]
     )
     
-    if (parseInt(orderCheck.rows[0].order_count) > 0) {
-      return res.status(400).json({
-        error: 'Cannot delete product',
-        message: 'This product has been ordered and cannot be deleted. Consider marking it as unavailable instead.',
-        details: `Product is referenced in ${orderCheck.rows[0].order_count} order(s)`
-      })
+    const orderCount = parseInt(orderCheck.rows[0].order_count)
+    
+    if (orderCount > 0) {
+      // Delete order items first, then delete product
+      await query('DELETE FROM order_items WHERE product_id = $1', [id])
     }
     
     const result = await query(
@@ -141,7 +140,8 @@ router.delete('/:id', simpleAdminAuth, async (req, res) => {
     
     res.json({
       message: 'Product deleted successfully',
-      product: result.rows[0]
+      product: result.rows[0],
+      warning: orderCount > 0 ? `Product was removed from ${orderCount} order(s)` : null
     })
   } catch (error) {
     console.error('Error deleting product:', error)
