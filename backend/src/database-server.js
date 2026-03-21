@@ -3,7 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import dotenv from "dotenv";
 
-import { testConnection } from "./database/connection.js";
+import { testConnection, query } from "./database/connection.js";
 import databaseAuthRoutes from "./routes/database-auth.js";
 import databaseProductRoutes from "./routes/database-products.js";
 import databaseOrderRoutes from "./routes/database-orders.js";
@@ -90,11 +90,14 @@ app.use((error, req, res, next) => {
 const startServer = async () => {
   try {
     console.log("🚀 Starting database-backed server...");
-console.log("📦 Using database-server.js (NOT simple-server.js)");
-console.log("🔑 Token-based authentication enabled");
+    console.log("📦 Using database-server.js (NOT simple-server.js)");
+    console.log("🔑 Token-based authentication enabled");
     
     // Test database connection
     const dbConnected = await testConnection();
+    if (!dbConnected) {
+      throw new Error("Database connection failed");
+    }
     
     // Run migrations
     console.log("📦 Running database migrations...");
@@ -104,6 +107,7 @@ console.log("🔑 Token-based authentication enabled");
       console.log("✅ Migrations completed");
     } catch (error) {
       console.error("⚠️  Migration error:", error.message);
+      throw error;
     }
     
     // Run seed
@@ -115,6 +119,20 @@ console.log("🔑 Token-based authentication enabled");
       console.log("✅ Seed completed");
     } catch (error) {
       console.error("⚠️  Seed error:", error.message);
+      // Don't throw - seed errors shouldn't stop server
+    }
+    
+    // Verify admin user one more time
+    console.log("� Final admin verification...");
+    try {
+      const adminCheck = await query('SELECT id, email, is_admin FROM users WHERE email = $1', ['admin@example.com']);
+      if (adminCheck.rows.length > 0) {
+        console.log("✅ Admin user verified:", adminCheck.rows[0]);
+      } else {
+        console.error("❌ Admin user not found after seed!");
+      }
+    } catch (error) {
+      console.error("⚠️  Admin verification error:", error.message);
     }
 
     app.listen(PORT, () => {
@@ -122,6 +140,7 @@ console.log("🔑 Token-based authentication enabled");
       console.log(`📦 Environment: ${process.env.NODE_ENV || "development"}`);
       console.log(`💾 Database: ${dbConnected ? "Connected" : "Disconnected"}`);
       console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
+      console.log(`👤 Admin: admin@example.com / admin123`);
     });
   } catch (error) {
     console.error("❌ Server failed:", error);

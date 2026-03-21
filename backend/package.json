@@ -15,7 +15,8 @@
     "setup": "node src/scripts/setup.js",
     "setup:db": "node src/database/setup-db.js",
     "health": "node src/database/health-check.js",
-    "db:reset": "npm run migrate && npm run seed"
+    "db:reset": "npm run migrate && npm run seed",
+    "fix-admin": "node src/scripts/fix-admin.js"
   },
   "dependencies": {
     "bcrypt": "^5.1.0",
