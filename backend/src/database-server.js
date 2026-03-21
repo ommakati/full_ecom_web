@@ -7,7 +7,7 @@ import { testConnection } from "./database/connection.js";
 import databaseAuthRoutes from "./routes/database-auth.js";
 import databaseProductRoutes from "./routes/database-products.js";
 import databaseOrderRoutes from "./routes/database-orders.js";
-import cartRoutes from "./routes/cart.js";
+import databaseCartRoutes from "./routes/database-cart.js";
 
 dotenv.config();
 
@@ -65,7 +65,7 @@ app.get("/api/test", (req, res) => {
 app.use("/api/auth", databaseAuthRoutes);
 app.use("/api/products", databaseProductRoutes);
 app.use("/api/orders", databaseOrderRoutes);
-app.use("/api/cart", cartRoutes); // Keep existing cart routes for now
+app.use("/api/cart", databaseCartRoutes);
 
 // 404 handler
 app.use((req, res) => {
