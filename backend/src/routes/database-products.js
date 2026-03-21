@@ -73,13 +73,6 @@ router.post('/', dbAdminAuth, async (req, res) => {
       })
     }
     
-    if (image_url && image_url.length > 1000) {
-      console.log('Validation failed: image_url too long', image_url.length)
-      return res.status(400).json({
-        error: 'Image URL must be 1000 characters or less'
-      })
-    }
-    
     const numericPrice = parseFloat(price)
     if (isNaN(numericPrice) || numericPrice <= 0) {
       console.log('Validation failed: invalid price', price)
